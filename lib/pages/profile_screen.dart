@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -235,5 +233,5 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-  
+
 }

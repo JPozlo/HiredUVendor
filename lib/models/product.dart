@@ -48,7 +48,6 @@ class Product {
       discount: json['discount'] as int,
       quantity: json['quantity'] as int,
       tags: json['tags'] as String,
-      // supplier: Supplier.fromJson(json['supplier'])
     );
   }
 
@@ -68,6 +67,6 @@ class Product {
 
   @override
   String toString() {
-    return "The product name: $name\n The product price is: $price\n The product image 1 is: ${picPath!.length}\n The product description is: $description";
+    return "The product name: $name\n The product price is: $price\n The product image length is: ${picPath!.length}\n The product description is: $description";
   }
 }

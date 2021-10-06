@@ -46,9 +46,18 @@ class _HomeState extends State<Home> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      "Your Products",
-                      style: TextStyle(fontSize: 18),
+                        RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "Your Products",
+                            style:
+                                Theme.of(context).textTheme.headline6?.copyWith(
+                                      color: Colors.black,
+                                    ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -147,11 +156,11 @@ class _HomeState extends State<Home> {
             padding: const EdgeInsets.only(top: 35),
             child: GridView.builder(
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     childAspectRatio: MediaQuery.of(context).size.width /
-                        (MediaQuery.of(context).size.height / 1.2),
+                        (MediaQuery.of(context).size.height / 1.18),
                     crossAxisSpacing: 6),
                 itemCount: listInfo.length,
                 itemBuilder: (context, index) {

@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hired_u_vendor/models/models.dart';
 import 'package:hired_u_vendor/providers/providers.dart';
+import 'package:hired_u_vendor/services/services.dart';
 import 'package:hired_u_vendor/utils/utils.dart';
 import 'package:hired_u_vendor/widgets/widgets.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CreateProductPage extends StatefulWidget {
   const CreateProductPage({Key? key}) : super(key: key);
@@ -18,62 +20,71 @@ class _CreateProductPageState extends State<CreateProductPage> {
   final PreferenceUtils _sharedPreferences = PreferenceUtils.getInstance();
   final _formKey = GlobalKey<FormState>();
   ProductCategory? _selectedCategory;
-  late String _selectedCategoryName;
-  late List<ProductCategory> _productCategories;
+  String? _selectedCategoryName;
+  List<ProductCategory>? _productCategories;
   late String _name, _description, _tags, _sku;
   late int _stockAmount, _price, _discount;
+  late Future<Result> _categoriesFuture;
   bool categoryIsSelected = false;
 
   @override
   void initState() {
     super.initState();
-    _productCategories = productCategories;
-    _selectedCategoryName = _productCategories.first.name!;
+    _categoriesFuture = ApiService().fetchProductCategoriesList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: SafeArea(
-            child: SingleChildScrollView(
-      child: Column(
-        children: [
-          topBar(),
-          SizedBox(
-            height: 15,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 13.0),
-            child: detailsFormUpdate(context),
-          )
-        ],
-      ),
-    )));
+            child: FutureBuilder(
+                future: _categoriesFuture,
+                builder: (context, AsyncSnapshot<Result> snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.done:
+                      if (snapshot.hasData && snapshot.data != null) {
+                        print("Snapshot data: ${snapshot.data.toString()}");
+                        _productCategories = snapshot.data!.productCategories!;
+                        _selectedCategoryName =
+                            snapshot.data!.productCategories!.first.name!;
+                        print(
+                            "listProducts: ${snapshot.data!.productCategories!}");
+                      } else if (snapshot.hasError) {
+                      } else {}
+                      break;
+                    default:
+                      break;
+                  }
+                  return SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        topBar(),
+                        const SizedBox(
+                          height: 15,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 13.0),
+                          child: detailsFormUpdate(
+                              context, snapshot.data?.productCategories),
+                        )
+                      ],
+                    ),
+                  );
+                })));
   }
 
   Widget topBar() {
     return Container(
       height: 32,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Text("Profile"),
-          GestureDetector(
-            onTap: () => Navigator.pop(this.context),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Icon(
-                Icons.arrow_back,
-                size: 24,
-              ),
-            ),
-          ),
-          Spacer(),
+          const Spacer(),
           RichText(
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: "Create New Address",
+                  text: "Add New Product",
                   style: Theme.of(context).textTheme.headline6?.copyWith(
                         color: Colors.black,
                       ),
@@ -81,16 +92,17 @@ class _CreateProductPageState extends State<CreateProductPage> {
               ],
             ),
           ),
-          Spacer()
+          const Spacer()
         ],
       ),
     );
   }
 
-  Widget detailsFormUpdate(BuildContext context) {
+  Widget detailsFormUpdate(
+      BuildContext context, List<ProductCategory>? categories) {
     ProductsOperationsController productProvider =
         Provider.of<ProductsOperationsController>(context);
-    UserProvider userProvider = Provider.of<UserProvider>(context);
+    productProvider.productsCategories = categories ?? List.empty();
 
     final nameInput = TextFormField(
         validator: (value) => value!.isEmpty ? "Please enter name" : null,
@@ -152,28 +164,24 @@ class _CreateProductPageState extends State<CreateProductPage> {
 
         createAddressResponse.then((response) async {
           if (response.status) {
-                        setState(() {
+            setState(() {
               categoryIsSelected = false;
             });
-                        if (response.product != null) {
-              
-              print("Product created: ${response.product}");
-              // userProvider.user = response.user!;
-              // await _sharedPreferences.saveFavoriteAddress(response.address!);
+            if (response.imageUploadURL != null) {
+              await launchPasswordResetURl(response.imageUploadURL!);
             }
             Fluttertoast.showToast(
-                msg: "Successfully created address",
+                msg: "Successfully added product",
                 toastLength: Toast.LENGTH_LONG);
             // nextScreen(context, MainHome());
           } else {
             setState(() {
-            categoryIsSelected = false;
-              
+              categoryIsSelected = false;
             });
             Flushbar(
               title: "Failed Login",
               message: response.message.toString(),
-              duration: Duration(seconds: 3),
+              duration: const Duration(seconds: 3),
             ).show(context);
           }
         });
@@ -181,7 +189,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
         Flushbar(
           title: "Invalid form",
           message: "Please Complete the form properly",
-          duration: Duration(seconds: 10),
+          duration: const Duration(seconds: 10),
         ).show(context);
       }
     }
@@ -193,40 +201,45 @@ class _CreateProductPageState extends State<CreateProductPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             label("Name"),
-            SizedBox(
+            const SizedBox(
               height: 7.0,
             ),
             nameInput,
             label("Description"),
-            SizedBox(
+            const SizedBox(
               height: 7.0,
             ),
             descInput,
             label("Price"),
-            SizedBox(
+            const SizedBox(
               height: 7.0,
             ),
             priceInput,
             label("Stock Quantity"),
-            SizedBox(
+            const SizedBox(
               height: 7.0,
             ),
             stockInput,
             label("Discount offered"),
-            SizedBox(
+            const SizedBox(
               height: 7.0,
             ),
             discountInput,
             label("Product Tags"),
-            SizedBox(
+            const SizedBox(
               height: 7.0,
             ),
             tagsInput,
-            SizedBox(
+            label("SKU"),
+            const SizedBox(
+              height: 7.0,
+            ),
+            skuInput,
+            const SizedBox(
               height: 11.0,
             ),
             categoriesWidget(),
-            SizedBox(
+            const SizedBox(
               height: 25.0,
             ),
             productProvider.createOrderStatus == ProductStatus.CreatingProduct
@@ -237,7 +250,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
                     onPressed: () {
                       doCreateAddress();
                     }),
-            SizedBox(
+            const SizedBox(
               height: 20.0,
             ),
           ],
@@ -249,34 +262,34 @@ class _CreateProductPageState extends State<CreateProductPage> {
   Widget categoriesWidget() {
     Widget child = Column(
       children: [
-        Text(
+        const Text(
           'Select a category from the list below:',
-          style: TextStyle(fontSize: 19.0),
+          style: const TextStyle(fontSize: 19.0),
         ),
         DropdownButtonHideUnderline(
           child: DropdownButton<String>(
-            hint: Text("Select a category for your product"),
+            hint: const Text("Select a category for your product"),
             value: _selectedCategoryName,
-            icon: Icon(Icons.arrow_downward),
+            icon: const Icon(Icons.arrow_downward),
             iconSize: 24,
             elevation: 16,
             style: TextStyle(color: AppTheme.mainBlueColor),
-            underline: Container(
-              height: 2,
-              color: Colors.deepPurpleAccent,
-            ),
+            // underline: Container(
+            //   height: 2,
+            //   color: Colors.deepPurpleAccent,
+            // ),
             onChanged: (String? newValue) {
               setState(() {
                 _selectedCategoryName = newValue!;
                 categoryIsSelected = true;
-                ProductCategory newService = _productCategories
-                    .where((element) => element.name == _selectedCategoryName)
+                ProductCategory? newService = _productCategories
+                    ?.where((element) => element.name == _selectedCategoryName)
                     .first;
                 print("New Service: ${newService.toString()}");
                 _selectedCategory = newService;
               });
             },
-            items: _productCategories.map((ProductCategory productCategory) {
+            items: _productCategories?.map((ProductCategory productCategory) {
               return DropdownMenuItem<String>(
                 child: Text(productCategory.name!),
                 value: productCategory.name,
@@ -326,5 +339,17 @@ class _CreateProductPageState extends State<CreateProductPage> {
       ],
     );
     return child;
+  }
+
+  Future<bool> launchPasswordResetURl(String imageURL) async {
+    Future<bool> success;
+    bool canWait = await canLaunch(imageURL);
+    print("canwait status: $canWait");
+    if (canWait) {
+      success = launch(imageURL);
+    } else {
+      success = Future.delayed(Duration.zero, () => false);
+    }
+    return success;
   }
 }

@@ -7,8 +7,10 @@ class Result {
   final List<Order>? ordersHistoryList;
   final Product? product;
   final List<Product>? products;
+  final List<ProductCategory>? productCategories;
   final Payment? payment;
   final User? user;
+  final String? imageUploadURL;
   final UpdateProfileUser? updateProfileUser;
   final List<Payment>? payments;
   final List<PaymentHistory>? paymentsHistory;
@@ -18,6 +20,8 @@ class Result {
 
   Result(this.status, this.message,
       {this.products,
+      this.productCategories,
+      this.imageUploadURL,
       this.updateProfileUser,
       this.product,
       this.user,

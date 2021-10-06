@@ -23,7 +23,15 @@ class ProductsOperationsController extends ChangeNotifier {
 
   List _selectedCategories = [];
 
-  // List<Product> _productsInStock = [];
+  List<ProductCategory> _productsCategories = [];
+  void set productsCategories(List<ProductCategory> newList) {
+    _productsCategories = newList;
+    // notifyListeners();
+  }
+
+  UnmodifiableListView<ProductCategory> get productsCategories {
+    return UnmodifiableListView(_productsCategories);
+  }
 
   List<Product> _productsInStock = [
     Product(
@@ -216,7 +224,8 @@ class ProductsOperationsController extends ChangeNotifier {
     var status = responseData['status_code'];
 
     if (status == 200) {
-      var serviceData = responseData['payment'];
+      var serviceData = responseData['product'];
+      String imageUploadUrl = responseData['image_upload_url'];
       Product product = Product.fromJson(serviceData);
 
       _createProductStatus = ProductStatus.CreateProductSuccess;
@@ -224,7 +233,11 @@ class ProductsOperationsController extends ChangeNotifier {
 
       String? message = responseData['message'];
 
-      result = Result(true, message ??= "Success", product: product);
+      print("The image upload URL: $imageUploadUrl");
+      print("The product created: ${product.toString()}");
+
+      result = Result(true, message ??= "Success",
+          product: product, imageUploadURL: imageUploadUrl);
     } else {
       result = Result(false, "An unexpected error occurred");
       _createProductStatus = ProductStatus.CreateProductFailure;

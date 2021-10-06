@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:device_info/device_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hired_u_vendor/models/models.dart';
 import 'package:hired_u_vendor/pages/pages.dart';
 import 'package:hired_u_vendor/providers/providers.dart';
+import 'package:hired_u_vendor/services/services.dart';
 import 'package:hired_u_vendor/utils/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:response/response.dart';
@@ -82,8 +84,10 @@ class _MyAppState extends State<MyApp> {
       ],
       child: Response(
         child: MaterialApp(
+          debugShowCheckedModeBanner: false,
           title: 'Flutter Demo',
           theme: ThemeData(
+
             // This is the theme of your application.
             //
             // Try running your application with "flutter run". You'll see the
@@ -95,7 +99,8 @@ class _MyAppState extends State<MyApp> {
             // is not restarted.
             primarySwatch: Colors.blue,
           ),
-          home: token == null ? const Login() : const MainHome(),
+          home: token == null ? const Login() : const MainHome()
+          ,
         ),
       ),
     );

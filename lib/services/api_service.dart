@@ -38,6 +38,7 @@ class ApiService {
   static const String fetchProducts = appBaseURL + "products";
   static const String updateProduct = appBaseURL + "products/update";
   static const String createProduct = appBaseURL + "products/create";
+  static const String fetchProductCategories = appBaseURL + "products/categories";
   // Services
   static const String fetchServices = appBaseURL + "services/main/";
   static const String createServiceOrder = appBaseURL + "services/orders";
@@ -198,6 +199,41 @@ class ApiService {
     }
     return result;
   }
+
+  Future<Result> fetchProductCategoriesList() async {
+    Result result;
+
+    String token =
+        await _sharedPreferences.getValueWithKey(Constants.userTokenPrefKey);
+
+    Response response = await get(Uri.parse(ApiService.fetchProductCategories),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        });
+
+    final Map<String, dynamic> responseData = json.decode(response.body);
+
+    var status = responseData['status_code'];
+
+    if (status == 200) {
+      var prodCategories = responseData['categories'];
+        List<ProductCategory> productCategories =
+            prodCategories.map<ProductCategory>((e) => ProductCategory.fromJson(e)).toList();
+
+        print("Prod Categories List: $productCategories");
+
+        String? message = responseData['message'];
+
+        result = Result(true, message ??= "Success",
+            productCategories: productCategories);
+      
+    } else {
+      result = Result(false, "An unexpected error occurred");
+    }
+    return result;
+  }
+
 
   Future<int> sendPaymentConfirmation(int id) async {
     late int finalStatus;
